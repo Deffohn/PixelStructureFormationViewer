@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torus Visualization</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        canvas {
+            border: 1px solid black;
+        }
+        #slider-container {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="torusCanvas" width="600" height="600"></canvas>
+    <div id="slider-container">
+        <label for="heightSlider">Height (y in MC): </label>
+        <input type="range" id="heightSlider" min="-40" max="40" step="1" value="0">
+        <span id="heightSliderValue">0</span>
+    </div>
+    <div id="slider-container">
+        <label for="gridStepSlider">Size: </label>
+        <input type="range" id="gridStepSlider" min="2" max="16" step="2" value="2">
+        <span id="gridStepSliderValue">2</span>
+    </div>
+
+    <script src="torus.js"></script>
+</body>
+</html>
