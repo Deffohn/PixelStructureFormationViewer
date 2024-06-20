@@ -11,16 +11,14 @@ const tubeRadius = 20; // in blocks
 
 
 const r = tubeRadius - 1;  // radius of the tube
-const R = figureRadius - ( tubeRadius - 1 ); // radius of the main circle
+const R = figureRadius - tubeRadius; // radius of the main circle
 
-console.log("R: " + R.toString())
-
-let gridStep = 2;
-let z = 0;
+let gridStep = 4;
+let z = 0.5;
 
 heightSlider.addEventListener('input', () => {
     heightSliderValue.textContent = heightSlider.value;
-    z = parseInt(heightSlider.value);
+    z = parseInt(heightSlider.value) + 0.5;
     drawTorus();
 });
 
@@ -34,53 +32,55 @@ function blockEquals(block1, block2) {
     return block1.x == block2.x && block1.y == block2.y
 }
 
+function customFloor(value) {
+    let floor = Math.floor(value);
+    if (value > 0 && floor === value) return Math.floor(value - 1);
+    return floor;
+}
+
 function drawTorus() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Translate canvas origin to the center
     ctx.save();
-    // ctx.translate(canvas.width/2, canvas.height/2);
 
-    // TODO
-    // // Draw helping blocks
-    // let flip = true;
-    // for (let x = 0; x < Math.round(R) + r + 10; x++) {
-    //     if (flip) ctx.fillStyle = 'darkgray';
-    //     else ctx.fillStyle = 'lightgray';
-    //     flip = !flip;
+    // Draw helping blocks
+    let flip = true;
+    for (let x = 0; x < Math.round(R) + r + 10; x++) {
+        if (flip) ctx.fillStyle = 'darkgray';
+        else ctx.fillStyle = 'lightgray';
+        flip = !flip;
 
-    //     ctx.fillRect(x*gridStep, 0, gridStep, gridStep);
-    // }
-    // flip = true;
-    // for (let y = 0; y < Math.round(R) + r + 10; y++) {
-    //     if (flip) ctx.fillStyle = 'darkgray';
-    //     else ctx.fillStyle = 'lightgray';
-    //     flip = !flip;
+        ctx.fillRect(x*gridStep, 0, gridStep, gridStep);
+    }
+    flip = true;
+    for (let y = 0; y < Math.round(R) + r + 10; y++) {
+        if (flip) ctx.fillStyle = 'darkgray';
+        else ctx.fillStyle = 'lightgray';
+        flip = !flip;
 
-    //     ctx.fillRect(0, y*gridStep, gridStep, gridStep);
-    // }
+        ctx.fillRect(0, y*gridStep, gridStep, gridStep);
+    }
 
     // Process blocks
     const outerBlocks = [];
     const innerBlocks = [];
-    const ROTATION_PRECISION = 0.0001 * Math.PI ;
-    // starting before the 0° angle due to rounded values, because first block would be skipped elseway
-    for (let u = (-0.5 * Math.PI) / 8; u < 0.5 * Math.PI + (0.5 * Math.PI) / 8; u += ROTATION_PRECISION) {
+    // ROTATION_PRECISION should perfectly divide MAXIMAL_ROTATION_ANGLE
+    const MAXIMAL_ROTATION_ANGLE = 0.5 * Math.PI;
+    const ROTATION_PRECISION = MAXIMAL_ROTATION_ANGLE / 2500 ;
+    for (let u = 0; u < MAXIMAL_ROTATION_ANGLE; u += ROTATION_PRECISION) {
+        let tubeAngleProjectionArgument = Math.sqrt( Math.pow(r, 2) - Math.pow((z - 0.5), 2) );
+        if (!tubeAngleProjectionArgument || tubeAngleProjectionArgument === 0) continue;
         const blockOuter = {
-            x: Math.floor((R + r * Math.cos(Math.asin(z/r))) * Math.cos(u) - 0.5),
-            y: Math.floor((R + r * Math.cos(Math.asin(z/r))) * Math.sin(u) - 0.5),
+            x: customFloor((R + tubeAngleProjectionArgument) * Math.cos(u) + 0.5),
+            y: customFloor((R + tubeAngleProjectionArgument) * Math.sin(u) + 0.5),
         }
         const blockInner = {
-            x: Math.floor((R - r * Math.cos(Math.asin(z/r))) * Math.cos(u) - 0.5),
-            y: Math.floor((R - r * Math.cos(Math.asin(z/r))) * Math.sin(u) - 0.5),
-        }
-        if (blockOuter.x == 0) {
-            console.log(R + " and " + r);
-            console.log(blockOuter);
+            x: customFloor((R - tubeAngleProjectionArgument) * Math.cos(u) + 0.5),
+            y: customFloor((R - tubeAngleProjectionArgument) * Math.sin(u) + 0.5),
         }
         
-        if (outerBlocks.length == 0 || outerBlocks.length != 0 && !blockEquals(outerBlocks[outerBlocks.length - 1], blockOuter)) outerBlocks.push(blockOuter)
-        if (innerBlocks.length == 0 || innerBlocks.length != 0 && !blockEquals(innerBlocks[innerBlocks.length - 1], blockInner)) innerBlocks.push(blockInner)
+        if (outerBlocks.length == 0 || outerBlocks.length != 0 && !blockEquals(outerBlocks[outerBlocks.length - 1], blockOuter)) outerBlocks.push(blockOuter);
+        if (innerBlocks.length == 0 || innerBlocks.length != 0 && !blockEquals(innerBlocks[innerBlocks.length - 1], blockInner)) innerBlocks.push(blockInner);
     }
 
     // Draw Torus surface
