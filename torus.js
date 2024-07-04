@@ -6,19 +6,19 @@ const gridStepSlider = document.getElementById('gridStepSlider');
 const gridStepSliderValue = document.getElementById('gridStepSliderValue');
 
 // TODO replace by value inputs
-const figureRadius = 62; // in blocks
-const tubeRadius = 20; // in blocks
+const figureRadius = 18; // in blocks
+const tubeRadius = 7; // in blocks
 
 
 const r = tubeRadius - 1;  // radius of the tube
 const R = figureRadius - tubeRadius; // radius of the main circle
 
 let gridStep = 4;
-let z = 0.5;
+let z = 0;
 
 heightSlider.addEventListener('input', () => {
     heightSliderValue.textContent = heightSlider.value;
-    z = parseInt(heightSlider.value) + 0.5;
+    z = parseInt(heightSlider.value);
     drawTorus();
 });
 
@@ -36,6 +36,21 @@ function customFloor(value) {
     let floor = Math.floor(value);
     if (value > 0 && floor === value) return Math.floor(value - 1);
     return floor;
+}
+
+function getPracticalHeight(height) {
+// consider height to be an integer
+    if (height === 0) return 0;
+    else if (height > 0) return height - 0.5;
+    else return height + 0.5;
+}
+
+function getTestPracticalHeight(height) {
+// consider height to be an integer
+    console.log(height);
+    if (height === 0) return 0;
+    else if (height > 0) return height - 0.5;
+    else return height + 0.5;
 }
 
 function drawTorus() {
@@ -68,15 +83,17 @@ function drawTorus() {
     const MAXIMAL_ROTATION_ANGLE = 0.5 * Math.PI;
     const ROTATION_PRECISION = MAXIMAL_ROTATION_ANGLE / 2500 ;
     for (let u = 0; u < MAXIMAL_ROTATION_ANGLE; u += ROTATION_PRECISION) {
-        let tubeAngleProjectionArgument = Math.sqrt( Math.pow(r, 2) - Math.pow((z - 0.5), 2) );
-        if (!tubeAngleProjectionArgument || tubeAngleProjectionArgument === 0) continue;
+
+        let gapToTubeCenter = r * Math.sqrt(1 - Math.pow(getPracticalHeight(z)/ r, 2));
+
+        if (!gapToTubeCenter || gapToTubeCenter <= 0) continue;
         const blockOuter = {
-            x: customFloor((R + tubeAngleProjectionArgument) * Math.cos(u) + 0.5),
-            y: customFloor((R + tubeAngleProjectionArgument) * Math.sin(u) + 0.5),
+            x: customFloor((R + gapToTubeCenter) * Math.cos(u) + 0.5),
+            y: customFloor((R + gapToTubeCenter) * Math.sin(u) + 0.5),
         }
         const blockInner = {
-            x: customFloor((R - tubeAngleProjectionArgument) * Math.cos(u) + 0.5),
-            y: customFloor((R - tubeAngleProjectionArgument) * Math.sin(u) + 0.5),
+            x: customFloor((R - gapToTubeCenter) * Math.cos(u) + 0.5),
+            y: customFloor((R - gapToTubeCenter) * Math.sin(u) + 0.5),
         }
         
         if (outerBlocks.length == 0 || outerBlocks.length != 0 && !blockEquals(outerBlocks[outerBlocks.length - 1], blockOuter)) outerBlocks.push(blockOuter);
